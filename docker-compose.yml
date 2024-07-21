@@ -1,0 +1,27 @@
+# docker-compose.yml
+version: '3'
+
+services:
+  web:
+    build: .
+    command: gunicorn --workers 3 point_detector.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/static
+    environment:
+      - DEBUG=1
+    depends_on:
+      - db
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: point_detector
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:

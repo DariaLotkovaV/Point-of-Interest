@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  title: API - Детекция “point of interest”
+  description: Swagger документация для API
+  version: 1.0.0
+  contact:
+    name: Лоткова Дарья
+
+servers:
+  - url: http://127.0.0.1:8000/api
+    description: Для локального тестирования
+  - url: http://localhost:8000/api
+    description: Для тестирования через Docker
+
+paths:
+  /register/:
+    post:
+      summary: Регистрация нового пользователя
+      description: Зарегистрируйте нового пользователя и получите токен аутентификации.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: testuser
+                password:
+                  type: string
+                  example: testpassword
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: abcdef123456
+        '400':
+          description: Недопустимый ввод
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Имя пользователя и/или пароль отсутствуют."
+
+  /token/:
+    post:
+      summary: Получение токена аутентификации
+      description: Получите токен аутентификации, указав имя пользователя и пароль.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: testuser
+                password:
+                  type: string
+                  example: testpassword
+      responses:
+        '200':
+          description: Токен успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: abcdef123456
+        '400':
+          description: Неверные данные учетной записи
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Неверные данные учетной записи"
+
+  /process-image/:
+    post:
+      summary: Детекция “точек-интереса”
+      description: Обработайте загруженное изображение и верните результат в виде json строки
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Изображение обработано успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  points_of_interest:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        x:
+                          type: integer
+                        y:
+                          type: integer
+        '400':
+          description: Изображение не предоставлено или его формат недопустим
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Изображение не предоставлено или его формат недопустим."
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Внутренняя ошибка сервера."
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
